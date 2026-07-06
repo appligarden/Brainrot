@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BrainVault｜ブレインロット基地管理</title>
+<style>
+:root{
+  --bg:#f7f7ff;--surface:#fff;--ink:#29283b;--muted:#77758d;--line:#e8e7f1;
+  --main:#7567db;--main-soft:#efedff;--danger:#d84e68;--shadow:0 15px 42px rgba(54,48,112,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#eeefff 0,#f8f8ff 360px);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.app{max-width:1240px;margin:auto;padding:20px 16px 60px}
+header{display:flex;gap:16px;justify-content:space-between;align-items:center;margin-bottom:22px}
+.brand h1{font-size:27px;margin:0;letter-spacing:.2px}.brand p{font-size:13px;margin:5px 0 0;color:var(--muted)}
+.header-actions{display:flex;align-items:center;gap:9px}
+.btn{border:0;border-radius:12px;padding:11px 14px;font-weight:800;transition:.18s}
+.btn:hover{transform:translateY(-1px);filter:brightness(.98)}
+.primary{background:var(--main);color:#fff;box-shadow:0 8px 18px rgba(116,103,219,.25)}
+.soft{background:var(--main-soft);color:#5146b3}.plain{background:#f0eff6;color:#5f5d76}.danger{background:#ffedf0;color:#c83d55}
+.user-label{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--muted)}
+.toolbar{background:rgba(255,255,255,.8);border:1px solid #ebebf6;border-radius:17px;padding:11px;display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:18px;box-shadow:0 8px 22px rgba(70,64,128,.05)}
+input,textarea,select{border:1px solid var(--line);border-radius:11px;padding:11px 12px;color:var(--ink);outline:none;background:#fff}
+input:focus,textarea:focus,select:focus{border-color:#9a90ee;box-shadow:0 0 0 3px rgba(117,103,219,.13)}
+textarea{resize:vertical;min-height:82px}.sort{min-width:150px}
+.bases{display:grid;gap:18px}.base{border:1px solid #e9e8f3;background:var(--surface);border-radius:21px;box-shadow:var(--shadow);overflow:hidden}
+.base-head{padding:17px 18px 13px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}
+.base-name{font-size:20px;margin:0}.base-memo{margin:7px 0 0;color:var(--muted);font-size:13px;white-space:pre-wrap}
+.total{font-size:13px;font-weight:800;color:#5146ac;background:var(--main-soft);border-radius:999px;padding:8px 10px;white-space:nowrap}
+.base-actions{padding:0 18px 15px;display:flex;gap:7px;flex-wrap:wrap}
+.item-grid{border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fill,minmax(156px,1fr));gap:0;padding:12px}
+.item-card{min-width:0;position:relative;border:1px solid #efedf6;border-radius:16px;padding:10px;background:#fff;transition:.18s box-shadow,.18s transform}
+.item-card:hover{box-shadow:0 9px 20px rgba(57,50,120,.10);transform:translateY(-1px)}
+.item-thumb{height:102px;width:100%;border-radius:11px;background:#f1f0f8;object-fit:cover;display:grid;place-items:center;color:#a3a1b4;font-size:12px}
+.item-title{font-size:14px;font-weight:850;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;margin:9px 0 3px}
+.item-value{font-size:13px;font-weight:850;color:#5549b3}.item-note{font-size:11px;color:var(--muted);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;margin-top:4px;min-height:14px}
+.card-actions{position:absolute;top:15px;right:15px;display:flex;gap:4px;opacity:0;transition:.18s}.item-card:hover .card-actions{opacity:1}
+.square{border:0;background:rgba(255,255,255,.92);color:#5b5972;border-radius:8px;width:29px;height:29px;font-size:15px;box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.grid-empty{grid-column:1/-1;color:var(--muted);font-size:14px;padding:14px 5px}
+.empty{padding:52px 20px;text-align:center;border:1px dashed #c7c4df;border-radius:20px;color:var(--muted);background:rgba(255,255,255,.65)}
+.status{font-size:12px;color:var(--muted);margin:0 0 12px}.status.error{color:var(--danger)}
+dialog{width:min(570px,calc(100vw - 28px));border:0;border-radius:20px;padding:0;box-shadow:0 25px 75px rgba(17,12,52,.30)}
+dialog::backdrop{background:rgba(24,20,53,.38);backdrop-filter:blur(2px)}
+.modal{padding:22px}.modal h2{font-size:20px;margin:0 0 18px}.fields{display:grid;gap:12px}.field label{display:block;font-size:13px;font-weight:800;color:#59566f;margin-bottom:6px}.field input,.field textarea{width:100%}.help{margin:5px 0 0;font-size:12px;color:var(--muted)}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.setup{max-width:810px;margin:40px auto;background:#fff;border:1px solid #e7e5f3;box-shadow:var(--shadow);border-radius:20px;padding:24px}.setup h2{margin:0 0 9px}.setup p,.setup li{color:#55536b;line-height:1.7;font-size:14px}.setup code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#f3f2fa;border-radius:6px;padding:2px 5px}.hidden{display:none!important}
+@media(max-width:650px){
+ .app{padding:15px 10px 45px}header{align-items:flex-start}.header-actions{flex-wrap:wrap;justify-content:flex-end}.user-label{display:none}
+ .brand h1{font-size:23px}.toolbar{grid-template-columns:1fr}.sort{width:100%}.base-head{grid-template-columns:1fr}.total{justify-self:start}
+ .base-actions{padding:0 12px 13px}.base-head{padding:15px 13px 11px}.item-grid{padding:9px;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.item-thumb{height:100px}
+ .card-actions{opacity:1}.btn{padding:10px 11px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div class="brand">
+      <h1>BrainVault</h1>
+      <p>ブレインロット基地を、まとめて守る。</p>
+    </div>
+    <div class="header-actions">
+      <span id="userLabel" class="user-label">接続準備中…</span>
+      <button id="loginBtn" class="btn soft">Googleでログイン</button>
+      <button id="logoutBtn" class="btn plain hidden">ログアウト</button>
+      <button id="addBaseBtn" class="btn primary" disabled>＋ 基地を追加</button>
+    </div>
+  </header>
+
+  <p id="status" class="status">Firebaseに接続しています…</p>
+
+  <section id="controls" class="toolbar hidden">
+    <input id="searchInput" placeholder="名前・メモで検索" autocomplete="off">
+    <select id="sortSelect" class="sort">
+      <option value="valueDesc">価値が高い順</option>
+      <option value="valueAsc">価値が低い順</option>
+      <option value="nameAsc">名前順</option>
+      <option value="newest">追加が新しい順</option>
+    </select>
+  </section>
+  <section id="bases" class="bases"></section>
+
+  <section id="setupBox" class="setup hidden">
+    <h2>Firebaseの設定がまだ入ってない</h2>
+    <p>このファイル内の <code>firebaseConfig</code> を、Firebaseコンソールに表示される設定に置き換えたら使える。</p>
+    <ol>
+      <li>Firebaseでプロジェクトを作り、Webアプリを登録する。</li>
+      <li>Authenticationで「Google」を有効化する。</li>
+      <li>Firestore Databaseを作成する。</li>
+      <li>このHTMLの設定欄を貼り替え、Firebase Hostingか自分のサーバーに置く。</li>
+    </ol>
+  </section>
+</main>
+
+<dialog id="baseDialog">
+<form method="dialog" class="modal" id="baseForm">
+  <h2 id="baseTitle">基地を追加</h2><input type="hidden" id="baseId">
+  <div class="fields">
+    <div class="field"><label for="baseName">ユーザー名・基地名</label><input id="baseName" maxlength="50" required placeholder="例：ゼロ（本垢）"></div>
+    <div class="field"><label for="baseMemo">基地メモ</label><textarea id="baseMemo" maxlength="500" placeholder="例：大好きな3体は絶対に合成しない"></textarea></div>
+  </div>
+  <div class="modal-actions"><button type="button" class="btn plain" data-close="baseDialog">キャンセル</button><button class="btn primary">保存</button></div>
+</form>
+</dialog>
+
+<dialog id="itemDialog">
+<form method="dialog" class="modal" id="itemForm">
+  <h2 id="itemTitle">ブレインロットを追加</h2><input type="hidden" id="itemId"><input type="hidden" id="itemBaseId">
+  <div class="fields">
+    <div class="field"><label for="itemName">名前</label><input id="itemName" maxlength="80" required placeholder="例：ラブラブベア"></div>
+    <div class="field"><label for="itemValue">価値</label><input id="itemValue" required inputmode="decimal" placeholder="例：500M / 1.2B / 250000000"><p class="help">K / M / B / T / Q と、数字だけの入力に対応。</p></div>
+    <div class="field"><label for="itemIcon">アイコンURL</label><input id="itemIcon" type="url" maxlength="1000" placeholder="https://..."></div>
+    <div class="field"><label for="itemMemo">メモ</label><textarea id="itemMemo" maxlength="500" placeholder="例：本垢保管、絶対に交換しない"></textarea></div>
+  </div>
+  <div class="modal-actions"><button type="button" class="btn plain" data-close="itemDialog">キャンセル</button><button class="btn primary">保存</button></div>
+</form>
+</dialog>
+
+<script type="module">
+/*
+  Firebase Console > Project settings > Your apps > SDK setup and configuration
+  の firebaseConfig を、この部分にそのまま貼り付ける。
+*/
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import {
+  getFirestore, doc, setDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const $ = id => document.getElementById(id);
+const isConfigured = !Object.values(firebaseConfig).some(v => String(v).includes("YOUR_"));
+let db, auth, currentUser = null, vault = {bases:[]}, unsubscribe = null;
+let searchText = "", sortMode = "valueDesc";
+const starterBases = [{
+  id:uid("base"), name:"ゼロ（本垢）",
+  memo:"大好きな子たちはここに保管。絶対に合成しない。",
+  items:[]
+}];
+
+function uid(prefix="id"){return prefix+"_"+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(v=""){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function formatValue(n){
+  if(!Number.isFinite(n)||n===0)return"0";
+  for(const [size,u] of [[1e15,"Q"],[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]]){
+    if(Math.abs(n)>=size){const x=n/size;return(Number.isInteger(x)?x:x.toFixed(x>=100?0:x>=10?1:2).replace(/\.0+$/,""))+u}
+  } return Math.round(n).toLocaleString()
+}
+function parseValue(t){
+  const m=String(t).trim().replace(/,/g,"").replace(/\s+/g,"").toUpperCase().match(/^([0-9]*\.?[0-9]+)([KMBTQ]?)$/);
+  if(!m)return null; const unit={K:1e3,M:1e6,B:1e9,T:1e12,Q:1e15,"":1}[m[2]]; const n=Number(m[1])*unit;
+  return Number.isFinite(n)?n:null;
+}
+function total(items){return (items||[]).reduce((n,x)=>n+(Number(x.value)||0),0)}
+function filteredItems(items){
+  const q=searchText.trim().toLowerCase();
+  const a=q?(items||[]).filter(x=>[x.name,x.memo,x.rawValue].join(" ").toLowerCase().includes(q)):[...(items||[])];
+  return a.sort((a,b)=>sortMode==="valueAsc"?a.value-b.value:sortMode==="nameAsc"?a.name.localeCompare(b.name,"ja"):sortMode==="newest"?(b.createdAt||0)-(a.createdAt||0):b.value-a.value);
+}
+function setStatus(text,err=false){$("status").textContent=text;$("status").classList.toggle("error",err)}
+function imageHtml(item){
+  return item.iconUrl
+   ? `<img class="item-thumb" src="${esc(item.iconUrl)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'item-thumb',textContent:'No Image'}))">`
+   : `<div class="item-thumb">No Image</div>`;
+}
+function render(){
+  const root=$("bases");
+  if(!currentUser){root.innerHTML=`<div class="empty"><strong>ログインしたら基地を開ける。</strong><br>Googleアカウントごとに、自分だけの保管庫になる。</div>`;return}
+  if(!vault.bases?.length){root.innerHTML=`<div class="empty"><strong>まだ基地がない。</strong><br>「基地を追加」から作ろう。</div>`;return}
+  root.innerHTML=vault.bases.map(base=>{
+    const items=filteredItems(base.items), cards=items.map(item=>`
+      <article class="item-card">
+        ${imageHtml(item)}
+        <div class="card-actions">
+          <button class="square" title="編集" data-action="edit-item" data-base="${base.id}" data-item="${item.id}">✎</button>
+          <button class="square" title="削除" data-action="delete-item" data-base="${base.id}" data-item="${item.id}">×</button>
+        </div>
+        <div class="item-title">${esc(item.name)}</div>
+        <div class="item-value">${esc(item.rawValue||formatValue(item.value))}</div>
+        <div class="item-note">${esc(item.memo||"")}</div>
+      </article>`).join("");
+    const blank=base.items?.length?`<div class="grid-empty">検索に一致するブレインロットがいない。</div>`:`<div class="grid-empty">まだ何も保管されてない。追加していこう。</div>`;
+    return `<section class="base">
+      <div class="base-head"><div><h2 class="base-name">${esc(base.name)}</h2>${base.memo?`<p class="base-memo">${esc(base.memo)}</p>`:""}</div><div class="total">合計価値：${formatValue(total(base.items))}</div></div>
+      <div class="base-actions">
+        <button class="btn soft" data-action="add-item" data-base="${base.id}">＋ ブレインロット追加</button>
+        <button class="btn plain" data-action="edit-base" data-base="${base.id}">基地を編集</button>
+        <button class="btn plain" data-action="delete-base" data-base="${base.id}">削除</button>
+      </div>
+      <div class="item-grid">${cards||blank}</div>
+    </section>`;
+  }).join("");
+}
+async function save(){
+  if(!currentUser)return;
+  setStatus("保存中…");
+  await setDoc(doc(db,"brainvaults",currentUser.uid),{bases:vault.bases,updatedAt:serverTimestamp()},{merge:true});
+  setStatus("クラウドに保存済み");
+}
+function subscribeVault(){
+  if(unsubscribe)unsubscribe();
+  unsubscribe=onSnapshot(doc(db,"brainvaults",currentUser.uid),snap=>{
+    if(snap.exists()) vault={bases:snap.data().bases||[]};
+    else {vault={bases:starterBases};save();}
+    render();setStatus("クラウドと同期中");
+  },err=>{setStatus("データの読込に失敗："+err.message,true)});
+}
+function openBase(base=null){
+  $("baseTitle").textContent=base?"基地を編集":"基地を追加";$("baseId").value=base?.id||"";$("baseName").value=base?.name||"";$("baseMemo").value=base?.memo||"";
+  $("baseDialog").showModal();setTimeout(()=>$("baseName").focus(),50);
+}
+function openItem(baseId,item=null){
+  $("itemTitle").textContent=item?"ブレインロットを編集":"ブレインロットを追加";
+  $("itemBaseId").value=baseId;$("itemId").value=item?.id||"";$("itemName").value=item?.name||"";$("itemValue").value=item?.rawValue||"";$("itemIcon").value=item?.iconUrl||"";$("itemMemo").value=item?.memo||"";
+  $("itemDialog").showModal();setTimeout(()=>$("itemName").focus(),50);
+}
+$("loginBtn").onclick=async()=>{try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){setStatus("ログインできなかった："+e.message,true)}};
+$("logoutBtn").onclick=()=>signOut(auth);
+$("addBaseBtn").onclick=()=>openBase();
+$("searchInput").oninput=e=>{searchText=e.target.value;render()};
+$("sortSelect").onchange=e=>{sortMode=e.target.value;render()};
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).close());
+
+$("baseForm").addEventListener("submit",async e=>{
+ e.preventDefault();const id=$("baseId").value,name=$("baseName").value.trim(),memo=$("baseMemo").value.trim();if(!name)return;
+ if(id){Object.assign(vault.bases.find(x=>x.id===id),{name,memo})}else{vault.bases.push({id:uid("base"),name,memo,items:[]})}
+ $("baseDialog").close();render();await save();
+});
+$("itemForm").addEventListener("submit",async e=>{
+ e.preventDefault();const base=vault.bases.find(x=>x.id===$("itemBaseId").value),id=$("itemId").value,name=$("itemName").value.trim(),rawValue=$("itemValue").value.trim(),value=parseValue(rawValue);
+ if(!base||!name)return;if(value===null){alert("価値は「500M」「1.2B」「250000000」みたいに入れてな。");return}
+ const valueObj={name,value,rawValue,iconUrl:$("itemIcon").value.trim(),memo:$("itemMemo").value.trim()};
+ if(id)Object.assign(base.items.find(x=>x.id===id),valueObj);else base.items.push({id:uid("br"),...valueObj,createdAt:Date.now()});
+ $("itemDialog").close();render();await save();
+});
+$("bases").onclick=async e=>{
+ const b=e.target.closest("[data-action]");if(!b)return;const base=vault.bases.find(x=>x.id===b.dataset.base),act=b.dataset.action;
+ if(act==="add-item")openItem(base.id);
+ if(act==="edit-base")openBase(base);
+ if(act==="delete-base"&&confirm(`「${base.name}」と中身を全部削除する？`)){vault.bases=vault.bases.filter(x=>x.id!==base.id);render();await save()}
+ if(act==="edit-item")openItem(base.id,base.items.find(x=>x.id===b.dataset.item));
+ if(act==="delete-item"){const item=base.items.find(x=>x.id===b.dataset.item);if(confirm(`「${item.name}」を削除する？`)){base.items=base.items.filter(x=>x.id!==item.id);render();await save()}}
+};
+
+if(!isConfigured){
+ $("setupBox").classList.remove("hidden");$("status").classList.add("hidden");$("loginBtn").classList.add("hidden");$("bases").innerHTML="";
+} else {
+ const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);
+ onAuthStateChanged(auth,user=>{
+  currentUser=user;
+  $("controls").classList.toggle("hidden",!user);$("addBaseBtn").disabled=!user;
+  $("loginBtn").classList.toggle("hidden",!!user);$("logoutBtn").classList.toggle("hidden",!user);
+  $("userLabel").textContent=user?(user.displayName||user.email||"ログイン中"):"未ログイン";
+  if(user){subscribeVault();setStatus("クラウドと同期中")}else{if(unsubscribe)unsubscribe();vault={bases:[]};setStatus("Googleでログインすると、自分の基地を開ける。");render()}
+ });
+}
+</script>
+</body>
+</html>
